@@ -1,0 +1,50 @@
+{
+  "name": "@harness.farm/social-cli",
+  "version": "0.1.2",
+  "description": "CDP-based social media automation CLI — X, 小红书, 抖音, B站, Temu",
+  "type": "module",
+  "publishConfig": {
+    "access": "public"
+  },
+  "bin": {
+    "social-cli": "./dist/cli.js"
+  },
+  "files": [
+    "dist",
+    "adapters"
+  ],
+  "scripts": {
+    "prepublishOnly": "tsc",
+    "dev": "tsx src/cli.ts",
+    "build": "tsc",
+    "x": "tsx src/cli.ts x",
+    "xhs": "tsx src/cli.ts xhs",
+    "douyin": "tsx src/cli.ts douyin",
+    "bilibili": "tsx src/cli.ts bilibili",
+    "temu": "tsx src/cli.ts temu"
+  },
+  "keywords": [
+    "social-media",
+    "automation",
+    "cdp",
+    "xiaohongshu",
+    "douyin",
+    "bilibili",
+    "temu",
+    "cli"
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/harness-farm/social-cli.git"
+  },
+  "dependencies": {
+    "ws": "^8.18.0",
+    "yaml": "^2.8.3"
+  },
+  "devDependencies": {
+    "@types/ws": "^8.5.12",
+    "tsx": "^4.19.2",
+    "typescript": "^5.8.2"
+  }
+}

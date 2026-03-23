@@ -1,0 +1,176 @@
+platform: douyin
+login_url: https://www.douyin.com
+login_check:
+  cookie: passport_csrf_token
+
+commands:
+
+  search:
+    args: [keyword]
+    steps:
+      - open: "https://www.douyin.com/search/{{keyword}}?type=video"
+      - wait: 4000
+      - extract:
+          selector: "a[href*='/video/']"
+          fields:
+            link:
+              selector: "a[href*='/video/']"
+              attr: href
+            text: ".kgnD1hJB, [class*=title], [class*=desc]"
+
+  like:
+    args: [url]
+    steps:
+      - open: "{{url}}"
+      - wait: 4000
+      - capture:
+          name: state_before
+          eval: "document.querySelector('[data-e2e=\"video-player-digg\"]')?.getAttribute('data-e2e-state') || ''"
+      - key: "z"
+      - wait: 1000
+      - capture:
+          name: state_after
+          eval: "document.querySelector('[data-e2e=\"video-player-digg\"]')?.getAttribute('data-e2e-state') || ''"
+      - return:
+          - field: 操作
+            value: "{{state_before === 'video-player-no-digged' ? '点赞成功' : '取消点赞'}}"
+          - field: 状态
+            value: "{{state_after}}"
+
+  comment:
+    args: [url, text]
+    steps:
+      - open: "{{url}}"
+      - wait: 4000
+      # X 键打开评论区
+      - key: "x"
+      - wait: 1200
+      # PointerEvent 激活 Draft.js 输入框（触发 React 事件）
+      - eval: >-
+          (function(){
+            var el = document.querySelector('.lFk180Rt') || document.querySelector('.GXmFLge7');
+            if(!el) return false;
+            ['pointerdown','mousedown','pointerup','mouseup','click'].forEach(function(evt){
+              el.dispatchEvent(new (evt.startsWith('pointer') ? PointerEvent : MouseEvent)(evt, {bubbles:true,cancelable:true,composed:true,view:window}));
+            });
+            return true;
+          })()
+      - wait: 1200
+      # focus Draft.js 编辑器
+      - eval: "document.querySelector('.notranslate.public-DraftEditor-content')?.focus()"
+      - wait: 300
+      # 插入文字（CDP char 事件，正确触发 Draft.js EditorState 更新）
+      - keyboard_insert: "{{text}}"
+      - wait: 600
+      - capture:
+          name: input_text
+          eval: "document.querySelector('.notranslate.public-DraftEditor-content')?.textContent?.trim() || ''"
+      # Enter 发送
+      - key: "Enter"
+      - wait: 2000
+      - return:
+          - field: 状态
+            value: "✅ 评论成功"
+          - field: 评论内容
+            value: "{{text}}"
+          - field: 输入确认
+            value: "{{input_text}}"
+
+  follow:
+    args: [url]
+    steps:
+      - open: "{{url}}"
+      - wait: 4000
+      # JbfEzak6 = the + follow button on the avatar in the right sidebar
+      # present = not yet following; absent = already following
+      - capture:
+          name: has_follow_btn
+          eval: "!!document.querySelector('.JbfEzak6')"
+      - eval: >-
+          (function(){
+            var el = document.querySelector('.JbfEzak6');
+            if(el) el.click();
+            return !!el;
+          })()
+      - wait: 1000
+      - capture:
+          name: btn_after
+          eval: "!!document.querySelector('.JbfEzak6')"
+      - return:
+          - field: 操作
+            value: "{{has_follow_btn === 'true' ? '关注成功' : '已在关注中（无操作）'}}"
+          - field: 关注按钮消失
+            value: "{{btn_after === 'false' ? '✅ 是' : '⚠️ 否'}}"
+
+  post:
+    args: [video, title, desc]   # video: 本地视频路径（必填）
+    steps:
+      - open: "https://creator.douyin.com/creator-micro/content/upload"
+      - wait: 4000
+      # 上传视频
+      - upload:
+          selector: "input[type=file]"
+          file: "{{video}}"
+      # 等待编辑器渲染（标题输入框出现）
+      - wait:
+          selector: "input[placeholder='填写作品标题，为作品获得更多流量']"
+      - wait: 1000
+      # 填写标题
+      - fill:
+          selector: "input[placeholder='填写作品标题，为作品获得更多流量']"
+          value: "{{title}}"
+      - wait: 500
+      # 填写描述（contenteditable）
+      - type_rich:
+          selector: ".zone-container.editor-kit-container"
+          value: "{{desc}}"
+      - wait: 800
+      # 选择封面：点击"选择封面" → 封面编辑器弹出 → 点"完成"
+      - eval: >-
+          (function(){
+            var btn = document.querySelector('.cover-Jg3T4p');
+            if (btn) { btn.click(); return true; }
+            return false;
+          })()
+      - wait: 2000
+      - eval: >-
+          (function(){
+            var btn = [...document.querySelectorAll('button')].find(function(b){
+              return b.textContent.trim() === '完成';
+            });
+            if (btn) { btn.click(); return true; }
+            return false;
+          })()
+      - wait: 1500
+      # 如果弹出"暂不设置竖封面"提示，跳过
+      - eval: >-
+          (function(){
+            var btn = [...document.querySelectorAll('button')].find(function(b){
+              return b.textContent.trim() === '暂不设置';
+            });
+            if (btn) { btn.click(); return true; }
+            return false;
+          })()
+      - wait: 1000
+      # 点击发布
+      - eval: >-
+          (function(){
+            var btn = [...document.querySelectorAll('button')].find(function(b){
+              return b.textContent.trim() === '发布' && !b.disabled;
+            });
+            if (btn) { btn.click(); return true; }
+            return false;
+          })()
+      - wait: 5000
+      - capture:
+          name: result_url
+          eval: "location.href"
+      - return:
+          - field: 状态
+            value: "✅ 发布成功"
+          - field: 标题
+            value: "{{title}}"
+          - field: 描述
+            value: "{{desc}}"
+          - field: 跳转URL
+            value: "{{result_url}}"
