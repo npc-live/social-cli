@@ -115,6 +115,22 @@ commands:
       - wait:
           selector: "input[placeholder='填写作品标题，为作品获得更多流量']"
       - wait: 1000
+      # 等待视频上传完成（进度条消失 或 上传成功文字出现）
+      # 抖音上传中会显示进度百分比，上传完成后进度区域消失或显示"上传完成"
+      - wait_until:
+          eval: >-
+            (function(){
+              var body = document.body.innerText;
+              if (body.includes('上传完成') || body.includes('Upload complete')) return true;
+              var progress = document.querySelector('.progress-bar, .upload-progress, [class*=progress]');
+              if (!progress) return true;
+              var text = progress.textContent || '';
+              if (text.includes('100%')) return true;
+              var btn = [...document.querySelectorAll('button')].find(function(b){ return b.textContent.trim() === '发布' && !b.disabled; });
+              return !!btn;
+            })()
+          timeout: 300000
+          interval: 3000
       # 填写标题
       - fill:
           selector: "input[placeholder='填写作品标题，为作品获得更多流量']"
@@ -165,9 +181,12 @@ commands:
       - capture:
           name: result_url
           eval: "location.href"
+      - capture:
+          name: success
+          eval: "document.body.innerText.includes('发布成功') || document.body.innerText.includes('作品发布') || location.href.includes('/content/manage') || location.href !== 'https://creator.douyin.com/creator-micro/content/upload'"
       - return:
           - field: 状态
-            value: "✅ 发布成功"
+            value: "{{success === 'true' ? '✅ 发布成功' : '⚠️ 请检查页面'}}"
           - field: 标题
             value: "{{title}}"
           - field: 描述
