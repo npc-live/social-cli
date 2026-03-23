@@ -26,6 +26,7 @@
  *   - extract: { selector, fields: { key: ".sel" | { selector, attr } } }
  *   - return: [ { field, value } ]  →  builds output table
  *   - assert: { eval: "js", message: "error msg" }
+ *   - wait_until: { eval: "js", timeout: 120000, interval: 2000 }  # poll until truthy
  */
 import fs from 'fs';
 import path from 'path';
@@ -65,7 +66,8 @@ export type Step =
   | { assert: { eval: string; message?: string } }
   | { key: string }
   | { keyboard_insert: string }
-  | { insert_text: string };
+  | { insert_text: string }
+  | { wait_until: { eval: string; timeout?: number; interval?: number } };
 
 export interface ExtractDef {
   selector: string;
@@ -266,6 +268,29 @@ export async function runYamlCommand(
         const text = interpolate(val as string, vars);
         console.log(`  → insert_text "${text.slice(0, 40)}"`);
         await cdpClient.send('Input.insertText', { text });
+        break;
+      }
+
+      case 'wait_until': {
+        // Poll a JS expression until it returns truthy, with timeout
+        const { eval: js, timeout = 120000, interval = 2000 } = val as { eval: string; timeout?: number; interval?: number };
+        const interpolatedJs = interpolate(js, vars);
+        console.log(`  → wait_until (timeout: ${timeout / 1000}s, interval: ${interval / 1000}s)`);
+        const deadline = Date.now() + timeout;
+        let resolved = false;
+        while (Date.now() < deadline) {
+          const r = exec.eval(interpolatedJs);
+          if (r.ok && r.value && r.value !== 'false' && r.value !== '' && r.value !== 0) {
+            resolved = true;
+            break;
+          }
+          console.log(`     ... waiting (${Math.round((deadline - Date.now()) / 1000)}s left)`);
+          exec.wait(interval);
+        }
+        if (!resolved) {
+          throw new Error(`wait_until timed out after ${timeout / 1000}s`);
+        }
+        console.log(`     ✅ condition met`);
         break;
       }
     }
