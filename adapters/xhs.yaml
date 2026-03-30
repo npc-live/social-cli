@@ -89,6 +89,9 @@ commands:
     steps:
       - open: "https://creator.xiaohongshu.com/publish/publish?source=official"
       - wait: 3000
+      # 等待上传按钮渲染完成
+      - wait:
+          selector: "input.upload-input"
       # 默认就在「上传视频」tab，直接上传
       - upload:
           selector: "input.upload-input"
@@ -96,6 +99,22 @@ commands:
       # 等待上传完成（标题输入框出现）
       - wait:
           selector: "input.d-text"
+      # 等待视频真正上传完成（进度条消失 / 发布按钮可点击）
+      - wait_until:
+          eval: >-
+            (function(){
+              var body = document.body.innerText;
+              if (body.includes('上传完成') || body.includes('转码完成')) return true;
+              var progress = document.querySelector('[class*=progress],[class*=uploading],[class*=upload-progress]');
+              if (progress) {
+                var text = progress.textContent || '';
+                if (text.includes('100%')) return true;
+              }
+              var btn = [...document.querySelectorAll('button')].filter(function(b){ return b.textContent.trim() === '发布'; }).pop();
+              return !!(btn && !btn.disabled);
+            })()
+          timeout: 300000
+          interval: 3000
       - wait: 1000
       # 填写标题
       - fill:

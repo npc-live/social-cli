@@ -1,6 +1,6 @@
 {
   "name": "@harness.farm/social-cli",
-  "version": "0.1.2",
+  "version": "0.1.4",
   "description": "CDP-based social media automation CLI — X, 小红书, 抖音, B站, Temu",
   "type": "module",
   "publishConfig": {
@@ -21,7 +21,10 @@
     "xhs": "tsx src/cli.ts xhs",
     "douyin": "tsx src/cli.ts douyin",
     "bilibili": "tsx src/cli.ts bilibili",
-    "temu": "tsx src/cli.ts temu"
+    "temu": "tsx src/cli.ts temu",
+    "zhipin": "tsx src/cli.ts zhipin",
+    "zhipin:resumes": "tsx src/scripts/zhipin-download-resumes.ts",
+    "zhipin:screen": "tsx src/scripts/zhipin-screen-resumes.ts"
   },
   "keywords": [
     "social-media",
@@ -39,6 +42,7 @@
     "url": "https://github.com/harness-farm/social-cli.git"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.80.0",
     "ws": "^8.18.0",
     "yaml": "^2.8.3"
   },

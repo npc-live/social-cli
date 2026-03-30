@@ -18,36 +18,31 @@ social-cli
 
 ## 快速开始
 
-### 1. 启动 Chrome（开启远程调试）
+### 1. 安装
+
+```bash
+npm install -g social-cli
+```
+
+### 2. 启动 Chrome（开启远程调试）
 
 ```bash
 # macOS
 /Applications/Google\ Chrome.app/Contents/MacOS/Google\ Chrome \
   --remote-debugging-port=9222 \
-  --user-data-dir=$HOME/.cdp-scraper/chrome-profile
+  --user-data-dir=$HOME/.social-cli/chrome-profile
 
 # Windows
-chrome.exe --remote-debugging-port=9222 --user-data-dir=%USERPROFILE%\.cdp-scraper\chrome-profile
+chrome.exe --remote-debugging-port=9222 --user-data-dir=%USERPROFILE%\.social-cli\chrome-profile
 
 # Linux
-google-chrome --remote-debugging-port=9222 --user-data-dir=~/.cdp-scraper/chrome-profile
-```
-
-### 2. 安装依赖
-
-```bash
-npm install
+google-chrome --remote-debugging-port=9222 --user-data-dir=~/.social-cli/chrome-profile
 ```
 
 ### 3. 运行命令
 
 ```bash
-# 开发模式（tsx，无需编译）
-tsx src/cli.ts <platform> <command> [args...]
-
-# 或使用 package.json 快捷脚本
-npm run xhs -- search 法律ai
-npm run x   -- search "claude ai"
+social-cli <platform> <command> [args...]
 ```
 
 ## 支持的平台和命令
@@ -63,11 +58,11 @@ npm run x   -- search "claude ai"
 | `retweet` | `url` | 转推 |
 
 ```bash
-tsx src/cli.ts x search "claude ai"
-tsx src/cli.ts x like "https://x.com/user/status/123"
-tsx src/cli.ts x reply "https://x.com/user/status/123" "很有意思！"
-tsx src/cli.ts x post "Hello from social-cli!"
-tsx src/cli.ts x retweet "https://x.com/user/status/123"
+social-cli x search "claude ai"
+social-cli x like "https://x.com/user/status/123"
+social-cli x reply "https://x.com/user/status/123" "很有意思！"
+social-cli x post "Hello from social-cli!"
+social-cli x retweet "https://x.com/user/status/123"
 ```
 
 ### 小红书（xhs / xiaohongshu）
@@ -81,11 +76,11 @@ tsx src/cli.ts x retweet "https://x.com/user/status/123"
 | `post` | `title content` | 发布图文笔记 |
 
 ```bash
-tsx src/cli.ts xhs search 法律ai
-tsx src/cli.ts xhs hot
-tsx src/cli.ts xhs like "https://www.xiaohongshu.com/explore/..."
-tsx src/cli.ts xhs comment "https://..." "太棒了！"
-tsx src/cli.ts xhs post --title "我的标题" --content "正文内容"
+social-cli xhs search 法律ai
+social-cli xhs hot
+social-cli xhs like "https://www.xiaohongshu.com/explore/..."
+social-cli xhs comment "https://..." "太棒了！"
+social-cli xhs post --title "我的标题" --content "正文内容"
 ```
 
 ### 抖音（douyin）
@@ -99,10 +94,10 @@ tsx src/cli.ts xhs post --title "我的标题" --content "正文内容"
 | `post` | `video title desc` | 发布视频 |
 
 ```bash
-tsx src/cli.ts douyin search 猫咪
-tsx src/cli.ts douyin like "https://www.douyin.com/video/..."
-tsx src/cli.ts douyin comment "https://..." "哈哈哈"
-tsx src/cli.ts douyin post /path/to/video.mp4 "标题" "描述"
+social-cli douyin search 猫咪
+social-cli douyin like "https://www.douyin.com/video/..."
+social-cli douyin comment "https://..." "哈哈哈"
+social-cli douyin post /path/to/video.mp4 "标题" "描述"
 ```
 
 ### B站（bilibili）
@@ -117,10 +112,10 @@ tsx src/cli.ts douyin post /path/to/video.mp4 "标题" "描述"
 | `post` | `video title desc` | 投稿视频 |
 
 ```bash
-tsx src/cli.ts bilibili search TypeScript教程
-tsx src/cli.ts bilibili like "https://www.bilibili.com/video/BV..."
-tsx src/cli.ts bilibili comment "https://..." "讲得很好！"
-tsx src/cli.ts bilibili post /path/to/video.mp4 "视频标题" "视频描述"
+social-cli bilibili search TypeScript教程
+social-cli bilibili like "https://www.bilibili.com/video/BV..."
+social-cli bilibili comment "https://..." "讲得很好！"
+social-cli bilibili post /path/to/video.mp4 "视频标题" "视频描述"
 ```
 
 ## YAML 适配器格式
@@ -171,14 +166,6 @@ commands:
 | `assert: { eval, message }` | 断言，失败则报错 |
 
 模板变量使用 `{{varName}}` 语法，也支持 JS 表达式：`{{a === 'true' ? '是' : '否'}}`
-
-## 编译发布
-
-```bash
-npm run build         # 编译 TypeScript → dist/
-```
-
-编译后可作为 `social-cli` 命令使用（需全局安装或 `npx`）。
 
 ## 项目结构
 

@@ -267,13 +267,10 @@ commands:
             return el.textContent.trim().slice(0,30);
           })()
       - wait: 500
-      # 点击"立即投稿"
-      - eval: >-
-          (function(){
-            var btn = document.querySelector("span.submit-add");
-            if(btn) { btn.click(); return true; }
-            return false;
-          })()
+      # 点击"立即投稿"（用 agent-browser click 发送真实鼠标事件，JS .click() 在此无效）
+      - eval: "document.querySelector('span.submit-add')?.scrollIntoView({block:'center'})"
+      - wait: 500
+      - click: "span.submit-add"
       - wait: 5000
       - capture:
           name: result_url
